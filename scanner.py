@@ -32,6 +32,9 @@ inverted_depth = False
 taken_photos = 0
 take_rgb = False
 
+# depth data
+depth_data = False
+
 # Scrollhandler for back_clipping
 def change_back_clipping(value):
 	global back_clipping
@@ -72,7 +75,9 @@ def display_depth(dev, data, timestamp):
 	handle_key_event(keypressed,data)
 
 def display_rgb(dev, data, timestamp):
+	# use globals in context
 	global take_rgb
+	# save image to the depth information
 	if take_rgb:
 		print("Capute RGB Photo")
 		save_rgb_information(data)
@@ -148,6 +153,7 @@ def save_depth_information(data):
 
 # save rgb information in file
 def save_rgb_information(video):
+	# use globals in context
 	global taken_photo
 	# convert image
 	video = video[:, :, ::-1]

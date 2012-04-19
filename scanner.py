@@ -28,13 +28,14 @@ calibrate_tilt_degs = True
 back_clipping = 200
 inverted_depth = False
 
+# taken photos
+taken_photos = 0
+take_rgb = False
+
 # Scrollhandler for back_clipping
 def change_back_clipping(value):
 	global back_clipping
 	back_clipping = value
-
-# taken photos
-taken_photos = 0
 
 # Create Window for Depthinformations with clipping chooser
 depth_window_name = 'WPF Virtual Reality - Depth Information'
@@ -69,11 +70,18 @@ def display_depth(dev, data, timestamp):
 	# key event
 	keypressed = cv.WaitKey(10)
 	handle_key_event(keypressed,data)
+
+def display_rgb(dev, data, timestamp):
+	global take_rgb
+	if take_rgb:
+		print("Capute RGB Photo")
+		save_rgb_information(data)
+		take_rgb = False
 	
 
 def handle_key_event(keypressed,data):
 	# use globals in context
-	global keep_running, inverted_depth, tilt_degs, calibrate_tilt_degs
+	global keep_running, inverted_depth, tilt_degs, calibrate_tilt_degs, take_rgb
 	# keyrequest for ESC Key
 	if keypressed == 27:
 		keep_running = False
@@ -83,6 +91,7 @@ def handle_key_event(keypressed,data):
 	# keyrequest for capuring
 	if keypressed == 32:
 		save_depth_information(data)
+		take_rgb = True
 	# controll tilt
 	if keypressed == 106:
 		tilt_degs += 1
@@ -128,18 +137,28 @@ def save_depth_information(data):
 	# use globals in context
 	global back_clipping
 	# debug	
-	print("Frame will be analysed ...");
+	print("Frame will be analysed ...")
 	# convert image
 	depth_image = convert_frame_for_cv(data)
 	# save image
 	global taken_photos
 	cv.SaveImage("depth-"+str(taken_photos)+".png", depth_image)
 	taken_photos+=1
-	print("Took photo in to depth-"+str(taken_photos)+".png !");
+	print("Took photo in to depth-"+str(taken_photos)+".png !")
 
+# save rgb information in file
+def save_rgb_information(video):
+	global taken_photo
+	# convert image
+	video = video[:, :, ::-1]
+	rgb_image = cv.CreateImageHeader((video.shape[1], video.shape[0]),cv.IPL_DEPTH_8U,3)
+	cv.SetData(rgb_image, video.tostring(),video.dtype.itemsize * 3 * video.shape[1])
+	# save image
+	cv.SaveImage("rgb-"+str(taken_photos-1)+".png", rgb_image)
+	print("Took photo in to rgb-"+str(taken_photos-1)+".png !")
 
 print('Press ESC in window to stop')
 # start runloop
-freenect.runloop(depth=display_depth, body=body)
+freenect.runloop(depth=display_depth,video=display_rgb, body=body)
 
 

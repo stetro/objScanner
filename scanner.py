@@ -14,8 +14,6 @@ import numpy
 # sys library for argv
 import sys
 
-import csv
-
 # Loopvariable
 keep_running = True
 
@@ -171,12 +169,14 @@ def save_3d_information(depth, video):
 	# 640 x 480 save image state
 	index = 0
 	print("start analysing ...")
+	# iterate through image information and save if necessary
 	for y in range(0, 480):
 		for x in range(0, 640):
 			if depth[y][x] != 0:
 				info_file.write(str(x)+" "+str(y)+" "+str(depth[y][x])+" "+str(video[y][x][0])+" "+str(video[y][x][1])+" "+str(video[y][x][2])+" "+"\n")
 				index += 1
-		if(y%6==0):
+		# state information (progressbar)
+		if(y%7==0):
 			sys.stdout.write("#")
 			sys.stdout.flush()
 		

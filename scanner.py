@@ -151,8 +151,8 @@ def save_depth_information(data):
 	# use globals in context
 	global taken_photos
 	# save image
-	cv.SaveImage("depth-"+str(taken_photos)+".png", data)
 	taken_photos+=1
+	cv.SaveImage("depth-"+str(taken_photos)+".png", data)
 	print("Took photo in to depth-"+str(taken_photos)+".png !")
 
 
@@ -166,15 +166,16 @@ def save_rgb_information(video):
 	cv.SetData(rgb_image, video.tostring(),video.dtype.itemsize * 3 * video.shape[1])
 	# save image
 	cv.SaveImage("rgb-"+str(taken_photos-1)+".png", rgb_image)
-	print("Took photo in to rgb-"+str(taken_photos-1)+".png !")
+	print("Took photo in to rgb-"+str(taken_photos)+".png !")
 
 
 # save information in csv File
 def save_3d_information(depth, video):
 	# use globals in context
 	global taken_photo
-	# open csv file	
-	info_file = open('info-'+str(taken_photos-1)+'.csv', 'wb')
+	# open csv and image file	
+	info_file = open('info-'+str(taken_photos)+'.csv', 'wb')
+	image = cv.CreateImage((640,480), cv.IPL_DEPTH_8U, 3)
 	# convert image
 	video = video[:, :, ::-1]
 	# 640 x 480 save image state
@@ -185,14 +186,16 @@ def save_3d_information(depth, video):
 		for x in range(0, 640):
 			if depth[y][x] != 0:
 				info_file.write(str(x)+" "+str(y)+" "+str(depth[y][x])+" "+str(video[y][x][0])+" "+str(video[y][x][1])+" "+str(video[y][x][2])+" "+"\n")
+				cv.Line(image,(x,y),(x,y),cv.Scalar(video[y][x][0],video[y][x][1],video[y][x][2]))
 				index += 1
 		# state information (progressbar)
 		if(y%7==0):
 			sys.stdout.write("#")
 			sys.stdout.flush()
 		
-	print("save 3d information ... wrote "+str(index)+" informations to info-"+str(taken_photos-1)+".csv")
+	print("\nsave 3d information ... wrote "+str(index)+" informations to info-"+str(taken_photos)+".csv")
 	info_file.close()
+	cv.SaveImage("result-"+str(taken_photos-1)+".png", image)
 
 
 print('Press ESC in window to stop')

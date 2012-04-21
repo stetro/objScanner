@@ -113,13 +113,7 @@ def handle_key_event(keypressed,data,for_cv_converted_frame):
 	if keypressed == 32:
 		depth_data = data
 		save_depth_information(for_cv_converted_frame)
-	# controll tilt
-	if keypressed == 106:
-		tilt_degs += 1
-		calibrate_tilt_degs = True
-	if keypressed == 107:
-		tilt_degs -= 1
-		calibrate_tilt_degs = True		
+	calibrate_tilt_degs = True		
 
 
 # convert the frame data for cv windows (depth)

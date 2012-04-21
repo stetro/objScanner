@@ -14,6 +14,8 @@ import numpy
 # sys library for argv
 import sys
 
+import csv
+
 # Loopvariable
 keep_running = True
 
@@ -30,10 +32,9 @@ inverted_depth = False
 
 # taken photos
 taken_photos = 0
-take_rgb = False
 
 # depth data
-depth_data = False
+depth_data = []
 
 # Scrollhandler for back_clipping
 def change_back_clipping(value):
@@ -66,27 +67,29 @@ def body(*args):
 # open and display the cv window with depth information
 # handles keyevents when the frame is rendered !
 def display_depth(dev, data, timestamp):
+	# convert as array and clip
+	data = clip_and_prepare_frame(data)
 	# convert data for cv window
 	for_cv_converted_frame = convert_frame_for_cv(data)
 	# display window
 	cv.ShowImage(depth_window_name, for_cv_converted_frame)
 	# key event
 	keypressed = cv.WaitKey(10)
-	handle_key_event(keypressed,data)
+	handle_key_event(keypressed,data,for_cv_converted_frame)
 
 def display_rgb(dev, data, timestamp):
 	# use globals in context
-	global take_rgb
+	global depth_data
 	# save image to the depth information
-	if take_rgb:
-		print("Capute RGB Photo")
+	if len(depth_data) > 0  :
 		save_rgb_information(data)
-		take_rgb = False
+		save_3d_information(depth_data,data)
+		depth_data = []
 	
 
-def handle_key_event(keypressed,data):
+def handle_key_event(keypressed,data,for_cv_converted_frame):
 	# use globals in context
-	global keep_running, inverted_depth, tilt_degs, calibrate_tilt_degs, take_rgb
+	global keep_running, inverted_depth, tilt_degs, calibrate_tilt_degs, depth_data
 	# keyrequest for ESC Key
 	if keypressed == 27:
 		keep_running = False
@@ -95,8 +98,8 @@ def handle_key_event(keypressed,data):
 		print("Invert Depth Information ...")
 	# keyrequest for capuring
 	if keypressed == 32:
-		save_depth_information(data)
-		take_rgb = True
+		depth_data = data
+		save_depth_information(for_cv_converted_frame)
 	# controll tilt
 	if keypressed == 106:
 		tilt_degs += 1
@@ -107,8 +110,6 @@ def handle_key_event(keypressed,data):
 
 # convert the frame data for cv windows (depth)
 def convert_frame_for_cv(data):
-	# clip frame
-	data = clip_and_prepare_frame(data)
 	# create image with size and DEPTH
 	image = cv.CreateImageHeader((data.shape[1], data.shape[0]), cv.IPL_DEPTH_8U, 1)
 	# handle image
@@ -141,14 +142,9 @@ def clip_and_prepare_frame(data):
 # save depth information in file and analyse them
 def save_depth_information(data):
 	# use globals in context
-	global back_clipping
-	# debug	
-	print("Frame will be analysed ...")
-	# convert image
-	depth_image = convert_frame_for_cv(data)
-	# save image
 	global taken_photos
-	cv.SaveImage("depth-"+str(taken_photos)+".png", depth_image)
+	# save image
+	cv.SaveImage("depth-"+str(taken_photos)+".png", data)
 	taken_photos+=1
 	print("Took photo in to depth-"+str(taken_photos)+".png !")
 
@@ -163,6 +159,29 @@ def save_rgb_information(video):
 	# save image
 	cv.SaveImage("rgb-"+str(taken_photos-1)+".png", rgb_image)
 	print("Took photo in to rgb-"+str(taken_photos-1)+".png !")
+
+# save information in csv File
+def save_3d_information(depth, video):
+	# use globals in context
+	global taken_photo
+	# open csv file	
+	info_file = open('info-'+str(taken_photos-1)+'.csv', 'wb')
+	# convert image
+	video = video[:, :, ::-1]
+	# 640 x 480 save image state
+	index = 0
+	print("start analysing ...")
+	for y in range(0, 480):
+		for x in range(0, 640):
+			if depth[y][x] != 0:
+				info_file.write(str(x)+" "+str(y)+" "+str(depth[y][x])+" "+str(video[y][x][0])+" "+str(video[y][x][1])+" "+str(video[y][x][2])+" "+"\n")
+				index += 1
+		if(y%6==0):
+			sys.stdout.write("#")
+			sys.stdout.flush()
+		
+	print("save 3d information ... wrote "+str(index)+" informations to info-"+str(taken_photos-1)+".csv")
+	info_file.close()
 
 print('Press ESC in window to stop')
 # start runloop

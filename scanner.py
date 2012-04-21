@@ -129,11 +129,12 @@ def clip_and_prepare_frame(data):
 	# invertienren
 	if(inverted_depth):
 		data *= -1
-		
-	# if(inverted_depth):
-	# 	data += back_clipping
-	# else:
-	#	data -= back_clipping
+	
+	# !! extract depth information from background!
+	if(inverted_depth):
+	 	data += back_clipping
+	else:
+		data -= back_clipping
 	
 	return data
 
@@ -166,5 +167,4 @@ def save_rgb_information(video):
 print('Press ESC in window to stop')
 # start runloop
 freenect.runloop(depth=display_depth,video=display_rgb, body=body)
-
 

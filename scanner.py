@@ -21,7 +21,7 @@ keep_running = True
 if len(sys.argv) > 1:
 	tilt_degs = float(sys.argv[1])
 else:
-	tilt_degs = 10
+	tilt_degs = 20
 calibrate_tilt_degs = True
 
 # clipping area
@@ -41,10 +41,18 @@ def change_back_clipping(value):
 	back_clipping = value
 
 
+# Scrollhandler for tilt_degs
+def change_tilt_degs(value):
+	global tilt_degs, calibrate_tilt_degs
+	tilt_degs=value-20
+	calibrate_tilt_degs=True
+	
+
 # Create Window for Depthinformations with clipping chooser
 depth_window_name = 'WPF Virtual Reality - Depth Information'
 cv.NamedWindow(depth_window_name)
 cv.CreateTrackbar('Background Clip Value', depth_window_name , back_clipping, 0xFF, change_back_clipping)
+cv.CreateTrackbar('Tilt Degrees', depth_window_name, tilt_degs, 40, change_tilt_degs)
 
 
 # loopdefinition for freenect
@@ -165,7 +173,7 @@ def save_rgb_information(video):
 	rgb_image = cv.CreateImageHeader((video.shape[1], video.shape[0]),cv.IPL_DEPTH_8U,3)
 	cv.SetData(rgb_image, video.tostring(),video.dtype.itemsize * 3 * video.shape[1])
 	# save image
-	cv.SaveImage("rgb-"+str(taken_photos-1)+".png", rgb_image)
+	cv.SaveImage("rgb-"+str(taken_photos)+".png", rgb_image)
 	print("Took photo in to rgb-"+str(taken_photos)+".png !")
 
 

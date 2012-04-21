@@ -113,7 +113,6 @@ def handle_key_event(keypressed,data,for_cv_converted_frame):
 	if keypressed == 32:
 		depth_data = data
 		save_depth_information(for_cv_converted_frame)
-	calibrate_tilt_degs = True		
 
 
 # convert the frame data for cv windows (depth)
@@ -191,13 +190,17 @@ def save_3d_information(depth, video):
 				cv.Line(image,(x,y),(x,y),cv.Scalar(video[y][x][0],video[y][x][1],video[y][x][2]))
 				index += 1
 		# state information (progressbar)
-		if(y%7==0):
+		percent = int(float(y) /float(480)*100)
+		sys.stdout.write(str(percent).zfill(2)+" % - ")
+		# output
+		for i in range(0,int(percent/2)):
 			sys.stdout.write("#")
-			sys.stdout.flush()
+		sys.stdout.write("\r")
+		sys.stdout.flush()
 		
 	print("\nsave 3d information ... wrote "+str(index)+" informations to info-"+str(taken_photos)+".csv")
 	info_file.close()
-	cv.SaveImage("result-"+str(taken_photos-1)+".png", image)
+	cv.SaveImage("result-"+str(taken_photos)+".png", image)
 
 
 print('Press ESC in window to stop')

@@ -34,15 +34,18 @@ taken_photos = 0
 # depth data
 depth_data = []
 
+
 # Scrollhandler for back_clipping
 def change_back_clipping(value):
 	global back_clipping
 	back_clipping = value
 
+
 # Create Window for Depthinformations with clipping chooser
 depth_window_name = 'WPF Virtual Reality - Depth Information'
 cv.NamedWindow(depth_window_name)
 cv.CreateTrackbar('Background Clip Value', depth_window_name , back_clipping, 0xFF, change_back_clipping)
+
 
 # loopdefinition for freenect
 def body(*args):
@@ -62,6 +65,7 @@ def body(*args):
 		# shutdown kinect features
 		raise freenect.Kill
 
+
 # open and display the cv window with depth information
 # handles keyevents when the frame is rendered !
 def display_depth(dev, data, timestamp):
@@ -75,6 +79,8 @@ def display_depth(dev, data, timestamp):
 	keypressed = cv.WaitKey(10)
 	handle_key_event(keypressed,data,for_cv_converted_frame)
 
+
+# capture video signal save if necessary
 def display_rgb(dev, data, timestamp):
 	# use globals in context
 	global depth_data
@@ -85,6 +91,7 @@ def display_rgb(dev, data, timestamp):
 		depth_data = []
 	
 
+# handles key event of display_depth
 def handle_key_event(keypressed,data,for_cv_converted_frame):
 	# use globals in context
 	global keep_running, inverted_depth, tilt_degs, calibrate_tilt_degs, depth_data
@@ -106,6 +113,7 @@ def handle_key_event(keypressed,data,for_cv_converted_frame):
 		tilt_degs -= 1
 		calibrate_tilt_degs = True		
 
+
 # convert the frame data for cv windows (depth)
 def convert_frame_for_cv(data):
 	# create image with size and DEPTH
@@ -113,7 +121,7 @@ def convert_frame_for_cv(data):
 	# handle image
 	cv.SetData(image, data.tostring(), data.dtype.itemsize * data.shape[1])
 	return image
-	
+
 
 # prepare and clip the frame for storage or display
 def clip_and_prepare_frame(data):
@@ -137,6 +145,7 @@ def clip_and_prepare_frame(data):
 	
 	return data
 
+
 # save depth information in file and analyse them
 def save_depth_information(data):
 	# use globals in context
@@ -145,6 +154,7 @@ def save_depth_information(data):
 	cv.SaveImage("depth-"+str(taken_photos)+".png", data)
 	taken_photos+=1
 	print("Took photo in to depth-"+str(taken_photos)+".png !")
+
 
 # save rgb information in file
 def save_rgb_information(video):
@@ -157,6 +167,7 @@ def save_rgb_information(video):
 	# save image
 	cv.SaveImage("rgb-"+str(taken_photos-1)+".png", rgb_image)
 	print("Took photo in to rgb-"+str(taken_photos-1)+".png !")
+
 
 # save information in csv File
 def save_3d_information(depth, video):
@@ -182,6 +193,7 @@ def save_3d_information(depth, video):
 		
 	print("save 3d information ... wrote "+str(index)+" informations to info-"+str(taken_photos-1)+".csv")
 	info_file.close()
+
 
 print('Press ESC in window to stop')
 # start runloop

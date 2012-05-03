@@ -174,8 +174,9 @@ def save_rgb_information(video):
 def save_3d_information(depth, video):
 	# use globals in context
 	global taken_photo
-	# open csv and image file	
-	info_file = open('info-'+str(taken_photos)+'.csv', 'wb')
+	# create meshlab and image file
+	# info_file = open('info-'+str(taken_photos)+'.csv', 'wb')
+	meshlab_file = open('meshlab-'+str(taken_photos)+'.asc','wb')
 	image = cv.CreateImage((640,480), cv.IPL_DEPTH_8U, 3)
 	# convert image
 	video = video[:, :, ::-1]
@@ -186,8 +187,9 @@ def save_3d_information(depth, video):
 	for y in range(0, 480):
 		for x in range(0, 640):
 			if depth[y][x] != 0:
-				info_file.write(str(x)+" "+str(y)+" "+str(depth[y][x])+" "+str(video[y][x][0])+" "+str(video[y][x][1])+" "+str(video[y][x][2])+" "+"\n")
+				# info_file.write(str(x)+" "+str(y)+" "+str(depth[y][x])+" "+str(video[y][x][0])+" "+str(video[y][x][1])+" "+str(video[y][x][2])+" "+"\n")
 				cv.Line(image,(x,y),(x,y),cv.Scalar(video[y][x][0],video[y][x][1],video[y][x][2]))
+				meshlab_file.write(str(x)+", "+str(y)+", "+str(depth[y][x])+"\n")
 				index += 1
 		# state information (progressbar)
 		percent = int(float(y) /float(480)*100)
@@ -199,7 +201,8 @@ def save_3d_information(depth, video):
 		sys.stdout.flush()
 		
 	print("\nsave 3d information ... wrote "+str(index)+" informations to info-"+str(taken_photos)+".csv")
-	info_file.close()
+	meshlab_file.close()
+	# info_file.close()
 	cv.SaveImage("result-"+str(taken_photos)+".png", image)
 
 

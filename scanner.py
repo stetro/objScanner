@@ -13,6 +13,8 @@ import cv
 import numpy
 # sys library for argv
 import sys
+# for subprocessing view
+import commands
 
 # Loopvariable
 keep_running = True
@@ -176,7 +178,17 @@ def save_3d_information(depth, video):
 	global taken_photo
 	# create meshlab and image file
 	# info_file = open('info-'+str(taken_photos)+'.csv', 'wb')
-	meshlab_file = open('meshlab-'+str(taken_photos)+'.asc','wb')
+	meshlab_file = open('meshlab-'+str(taken_photos)+'.ply','wb')
+	
+	# PLY HEADER
+	# meshlab_file.write("ply\nformat ascii 1.0\nelement vertex7\n")
+	# meshlab_file.write("property float x\n")
+	# meshlab_file.write("property float y\n")
+	# meshlab_file.write("property float z\n")
+	# meshlab_file.write("property uchar red\n")
+	# meshlab_file.write("property uchar green\n")
+	# meshlab_file.write("property uchar blue\n")
+	# meshlab_file.write("end_header\n")
 	image = cv.CreateImage((640,480), cv.IPL_DEPTH_8U, 3)
 	# convert image
 	video = video[:, :, ::-1]
@@ -187,9 +199,9 @@ def save_3d_information(depth, video):
 	for y in range(0, 480):
 		for x in range(0, 640):
 			if depth[y][x] != 0:
-				# info_file.write(str(x)+" "+str(y)+" "+str(depth[y][x])+" "+str(video[y][x][0])+" "+str(video[y][x][1])+" "+str(video[y][x][2])+" "+"\n")
+				meshlab_file.write(str(x)+" "+str(y)+" "+str(depth[y][x])+" "+str(video[y][x][0])+" "+str(video[y][x][1])+" "+str(video[y][x][2])+"\n")
 				cv.Line(image,(x,y),(x,y),cv.Scalar(video[y][x][0],video[y][x][1],video[y][x][2]))
-				meshlab_file.write(str(x)+", "+str(y)+", "+str(depth[y][x])+"\n")
+				# meshlab_file.write(str(x)+", "+str(y)+", "+str(depth[y][x])+"\n")
 				index += 1
 		# state information (progressbar)
 		percent = int(float(y) /float(480)*100)
@@ -204,6 +216,7 @@ def save_3d_information(depth, video):
 	meshlab_file.close()
 	# info_file.close()
 	cv.SaveImage("result-"+str(taken_photos)+".png", image)
+	commands.getstatusoutput('java -jar ./viewer.jar -p ./meshlab-'+str(taken_photos)+'.ply')
 
 
 print('Press ESC in window to stop')

@@ -3,15 +3,22 @@
 #include <pcl/kdtree/kdtree_flann.h>
 #include <pcl/features/normal_3d.h>
 #include <pcl/surface/gp3.h>
-
+#include <stdio.h>
+#include <stdlib.h>
 #include <pcl/io/vtk_io.h>
 
 int main (int argc, char** argv)
 {
+  if(argc <=2)
+  {
+    printf("Aufruf mit %s <pcdfile> <vtkdestination>\n");
+    return EXIT_FAILURE;
+  }
+
   // Load input file into a PointCloud<T> with an appropriate type
   pcl::PointCloud<pcl::PointXYZ>::Ptr cloud (new pcl::PointCloud<pcl::PointXYZ>);
   sensor_msgs::PointCloud2 cloud_blob;
-  pcl::io::loadPCDFile ("../pointcloud-1.pcd", cloud_blob);
+  pcl::io::loadPCDFile (argv[1], cloud_blob);
   pcl::fromROSMsg (cloud_blob, *cloud);
   //* the data should be available in cloud
 
@@ -60,7 +67,7 @@ int main (int argc, char** argv)
   std::vector<int> states = gp3.getPointStates();
   
   // Speichern !
-  pcl::io::saveVTKFile ("mesh.vtk", triangles);
+  pcl::io::saveVTKFile (argv[2], triangles);
   // Finish
-  return (0);
+  return (EXIT_SUCCESS);
 }

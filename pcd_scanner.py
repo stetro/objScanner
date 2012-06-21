@@ -15,6 +15,8 @@ import numpy
 import sys
 # for subprocessing view
 import commands
+# for vtk viewer
+import vtk
 
 # Loopvariable
 keep_running = True
@@ -61,7 +63,6 @@ cv.CreateTrackbar('Tilt Degrees', depth_window_name, tilt_degs, 40, change_tilt_
 def body(*args):
 	# use globals in context
 	global calibrate_tilt_degs, tilt_degs
-	
 	# print(freenect.get_accel(args[0]))
 	# if program has to calibrate tilt degs
 	if calibrate_tilt_degs:
@@ -69,7 +70,6 @@ def body(*args):
 		print("current tilt degrees changed to "+str(tilt_degs))
 		freenect.set_tilt_degs(args[0],tilt_degs)		
 		calibrate_tilt_degs = False
-		
 	# stop runloop if keep_running is false
 	if not keep_running:
 		# shutdown kinect features
@@ -139,13 +139,11 @@ def clip_and_prepare_frame(data):
 	# invertienren
 	if(inverted_depth):
 		data *= -1
-	
 	# !! extract depth information from background!
 	if(inverted_depth):
 	 	data += back_clipping
 	else:
 		data -= back_clipping
-	
 	return data
 
 
@@ -156,13 +154,13 @@ def save_depth_information(data):
 	# save image
 	taken_photos+=1
 	cv.SaveImage("depth-"+str(taken_photos)+".png", data)
-	print("Took photo in to depth-"+str(taken_photos)+".png !")
+	print("Took photo in to depth-"+str(taken_photos)+".pnrunningg !")
 
 
 # save rgb information in file
 def save_rgb_information(video):
 	# use globals in context
-	global taken_photo
+	global taken_photos
 	# convert image
 	video = video[:, :, ::-1]
 	rgb_image = cv.CreateImageHeader((video.shape[1], video.shape[0]),cv.IPL_DEPTH_8U,3)
@@ -175,10 +173,9 @@ def save_rgb_information(video):
 # save information in csv File
 def save_3d_information(depth, video):
 	# use globals in context
-	global taken_photo
+	global taken_photos
 	# create pointcloud file
 	pointcloud_file = open('pointcloud-'+str(taken_photos)+'.pcd','wb')
-	
 	index = 0
 	print("start first analysing ...")
 	# iterate through image information and save if necessary
@@ -194,7 +191,6 @@ def save_3d_information(depth, video):
 			sys.stdout.write("#")
 		sys.stdout.write("\r")
 		sys.stdout.flush()
-
 	# PLY HEADER
 	pointcloud_file.write("# .PCD v.7 - Point Cloud Data file format\n")
 	pointcloud_file.write("VERSION .7\n")
@@ -207,17 +203,16 @@ def save_3d_information(depth, video):
 	pointcloud_file.write("VIEWPOINT 0 0 0 1 0 0 0\n")
 	pointcloud_file.write("POINTS "+str(index)+"\n")
 	pointcloud_file.write("DATA ascii\n")
-
 	depth -= numpy.argmin(depth)
-
 	depthcalc = 2.0
-
-	print("start second analysing ...")
+	# convert image
+	video = video[:, :, ::-1]
+	print("\nstart second analysing ...\n")
 	# iterate through image information and save if necessary
 	for y in range(0, 480):
 		for x in range(0, 640):
 			if depth[y][x] != 0:
-				pointcloud_file.write(str(float(x)/depthcalc)+" "+str(float(y)/depthcalc)+" "+str(depth[y][x])+" "+str(0)+"\n")
+				pointcloud_file.write(str(float(x)/depthcalc)+" "+str(float(y)/depthcalc)+" "+str(depth[y][x])+" "+str(video[y][x][0])+"\n")
 		# state information (progressbar)
 		percent = int(float(y) /float(480)*100)
 		sys.stdout.write(str(percent).zfill(2)+" % - ")
@@ -226,10 +221,46 @@ def save_3d_information(depth, video):
 			sys.stdout.write("#")
 		sys.stdout.write("\r")
 		sys.stdout.flush()
-		
 	pointcloud_file.close()
+	create_mesh_vtk_file()
 
+# generate vtkfile
+def create_mesh_vtk_file():
+	# use globals in context
+	global taken_photos
+	# run mesher
+	print(commands.getstatusoutput("./mesher/mesher pointcloud-"+str(taken_photos)+".pcd mesh-"+str(taken_photos)+".vtk"))
+	show_vtk_file("mesh-"+str(taken_photos)+".vtk")
 
+# show vtk file in 3d and rotate and zoom
+def show_vtk_file(path):
+	# open vtk file from arglist
+	reader = vtk.vtkDataSetReader()
+	reader.SetFileName(path)
+	reader.Update()
+	# read out data and scalarrange
+	output = reader.GetOutput()
+	scalarrange = output.GetScalarRange()
+	# generate Mapper and set DataSource
+	mapper = vtk.vtkDataSetMapper()
+	mapper.SetInput(output)
+	mapper.SetScalarRange(scalarrange)
+	# create actor
+	actor = vtk.vtkActor()
+	actor.SetMapper(mapper)
+	# build renderer
+	renderer = vtk.vtkRenderer()
+	window = vtk.vtkRenderWindow()
+	window.AddRenderer(renderer)
+	# create interaction
+	interaction = vtk.vtkRenderWindowInteractor()
+	interaction.SetRenderWindow(window)
+	# add actor
+	renderer.AddActor(actor)
+	# show window and start inteaction and renderer
+	interaction.Initialize()
+	window.Render()
+	interaction.Start()
 
 print('Press ESC in window to stop')
 # start runloop

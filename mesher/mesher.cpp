@@ -11,7 +11,7 @@ int main (int argc, char** argv)
 {
   if(argc <=2)
   {
-    printf("Aufruf mit %s <pcdfile> <vtkdestination>\n");
+    printf("Aufruf mit %s <pcdfile> <vtkdestination>\n",argv[0]);
     return EXIT_FAILURE;
   }
 

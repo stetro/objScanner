@@ -181,14 +181,14 @@ def save_3d_information(depth, video):
 	meshlab_file = open('meshlab-'+str(taken_photos)+'.ply','wb')
 	
 	# PLY HEADER
-	# meshlab_file.write("ply\nformat ascii 1.0\nelement vertex7\n")
-	# meshlab_file.write("property float x\n")
-	# meshlab_file.write("property float y\n")
-	# meshlab_file.write("property float z\n")
-	# meshlab_file.write("property uchar red\n")
-	# meshlab_file.write("property uchar green\n")
-	# meshlab_file.write("property uchar blue\n")
-	# meshlab_file.write("end_header\n")
+	meshlab_file.write("ply\nformat ascii 1.0\nelement vertex7\n")
+	meshlab_file.write("property float x\n")
+	meshlab_file.write("property float y\n")
+	meshlab_file.write("property float z\n")
+	meshlab_file.write("property uchar red\n")
+	meshlab_file.write("property uchar green\n")
+	meshlab_file.write("property uchar blue\n")
+	meshlab_file.write("end_header\n")
 	image = cv.CreateImage((640,480), cv.IPL_DEPTH_8U, 3)
 	# convert image
 	video = video[:, :, ::-1]
